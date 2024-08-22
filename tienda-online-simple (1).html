@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda Online Simple</title>
+    <style>
+        /* ... (El CSS permanece igual que en la versión anterior) ... */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tienda Online Simple</h1>
+        <div class="products" id="products"></div>
+    </div>
+
+    <button id="toggle-cart">🛒</button>
+
+    <div id="cart">
+        <h2>Carrito</h2>
+        <div id="cart-items"></div>
+        <div id="cart-total">Total: $0.00</div>
+    </div>
+
+    <script>
+        const products = [
+            { id: 1, name: "Camiseta", price: 19.99, image: "/api/placeholder/250/200", sizes: ["S", "M", "L", "XL"] },
+            { id: 2, name: "Pantalón", price: 39.99, image: "/api/placeholder/250/200", sizes: ["28", "30", "32", "34"] },
+            { id: 3, name: "Zapatos", price: 59.99, image: "/api/placeholder/250/200", sizes: ["38", "39", "40", "41", "42"] },
+            { id: 4, name: "Gorra", price: 14.99, image: "/api/placeholder/250/200", sizes: ["S", "M", "L"] }
+        ];
+
+        const productsContainer = document.getElementById("products");
+        const cartItemsContainer = document.getElementById("cart-items");
+        const cartTotalElement = document.getElementById("cart-total");
+        const toggleCartButton = document.getElementById("toggle-cart");
+        const cart = document.getElementById("cart");
+
+        let cartItems = [];
+
+        function renderProducts() {
+            productsContainer.innerHTML = products.map(product => `
+                <div class="product-card">
+                    <img src="${product.image}" alt="${product.name}">
+                    <h3>${product.name}</h3>
+                    <p>Precio: $${product.price.toFixed(2)}</p>
+                    <select id="size-${product.id}">
+                        ${product.sizes.map(size => `<option value="${size}">${size}</option>`).join('')}
+                    </select>
+                    <button onclick="addToCart(${product.id})">Añadir al carrito</button>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const size = document.getElementById(`size-${productId}`).value;
+            cartItems.push({ ...product, size });
+            updateCart();
+            saveCartToLocalStorage();
+        }
+
+        function removeFromCart(index) {
+            cartItems.splice(index, 1);
+            updateCart();
+            saveCartToLocalStorage();
+        }
+
+        function updateCart() {
+            cartItemsContainer.innerHTML = cartItems.map((item, index) => `
+                <div class="cart-item">
+                    <span>${item.name} (${item.size}) - $${item.price.toFixed(2)}</span>
+                    <button onclick="removeFromCart(${index})">Eliminar</button>
+                </div>
+            `).join('');
+
+            const total = cartItems.reduce((sum, item) => sum + item.price, 0);
+            cartTotalElement.textContent = `Total: $${total.toFixed(2)}`;
+        }
+
+        function saveCartToLocalStorage() {
+            localStorage.setItem('cart', JSON.stringify(cartItems));
+        }
+
+        function loadCartFromLocalStorage() {
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) {
+                cartItems = JSON.parse(savedCart);
+                updateCart();
+            }
+        }
+
+        toggleCartButton.addEventListener("click", () => {
+            cart.classList.toggle("open");
+        });
+
+        // Inicialización
+        renderProducts();
+        loadCartFromLocalStorage();
+    </script>
+</body>
+</html>
