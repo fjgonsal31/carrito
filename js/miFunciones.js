@@ -85,10 +85,16 @@ const products = [
   },
 ];
 
-let productosContainer = document.getElementById("products");
+let productContainer = document.getElementById("products");
+let productCart = [];
+let divCart = document.getElementById("cart");
+let btnCart = document.getElementById("toggle-cart");
+let itemsCart = document.getElementById("cart-items");
+let totalCart = document.getElementById("cart-total");
+let countCart = document.getElementById("count-cart");
 
 function renderizarProductos() {
-  let productosHtml = products
+  productContainer.innerHTML = products
     .map(
       (producto) =>
         `<div class="product-card">
@@ -104,12 +110,61 @@ function renderizarProductos() {
     </div>`
     )
     .join(" ");
-
-  productosContainer.innerHTML = productosHtml;
 }
 
 function addCarrito(productoId) {
-  alert(productoId);
+  let producto = products.find((producto) => producto.id === productoId);
+  let talla = document.getElementById(`size-${producto.id}`).value;
+
+  productCart.push({ ...producto, talla });
+  updateCarrito();
 }
 
+function updateCarrito() {
+  let total = productCart.reduce((suma, item) => suma + item.price, 0);
+
+  if (total === 0) {
+    total = "0.00";
+  }
+
+  itemsCart.innerHTML = productCart
+    .map(
+      (item, index) =>
+        `<div class="cart-item">
+          <ul>
+            <li>${item.name} ${item.talla} <span>${item.price} €</span></li>
+          </ul>
+          <button onclick="deleteItem(${index})">🗑</button>
+        </div>`
+    )
+    .join("");
+
+  totalCart.innerHTML = "Total: " + total + " €";
+  countCart.innerHTML = productCart.length;
+  saveStorageCart();
+}
+
+function deleteItem(index) {
+  productCart.splice(index, 1);
+  updateCarrito();
+}
+
+function saveStorageCart() {
+  localStorage.setItem("cart", JSON.stringify(productCart));
+}
+
+function loadStorageCart() {
+  let productloadStorageCart = localStorage.getItem("cart");
+
+  if (productloadStorageCart) {
+    productCart = JSON.parse(productloadStorageCart);
+    updateCarrito();
+  }
+}
+
+btnCart.addEventListener("click", () => {
+  divCart.classList.toggle("open");
+});
+
 renderizarProductos();
+loadStorageCart();
